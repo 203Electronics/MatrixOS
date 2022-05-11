@@ -172,6 +172,12 @@ namespace Device::KeyPad
                 {
                     uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
                     read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
+                    if(read > low_threshold)
+                    {
+                        uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                        uint32_t pad_r = (3300 - voltage) * 220 / ((voltage == 0) ? 1 : voltage);
+                        MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\t%d mv\t%d ohm\n", x, y, raw_voltage, (float)raw_voltage / 4095, voltage, pad_r);
+                    }
                 }
                 gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
                 bool updated = keypadState[x][y].update(read, true);

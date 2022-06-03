@@ -64,7 +64,7 @@ namespace MatrixOS::LED
     }
 
     void Fill(Color color, uint8_t layer)
-    {
+    {   
         if(layer > currentLayer)
         {
             MatrixOS::SYS::ErrorHandler("LED Layer Unavailable");
@@ -78,6 +78,7 @@ namespace MatrixOS::LED
 
     void Update(int8_t layer) 
     {
+        // Logging::LogInfo("LED", "Update");
         // Device::LED::Update(frameBuffers[layer], SYS::GetVariable("brightness"));
         if(layer == currentLayer)
             needUpate = true;

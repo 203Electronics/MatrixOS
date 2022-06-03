@@ -6,6 +6,8 @@ namespace MatrixOS::USB
     void usb_device_task(void* param)
     {
         (void) param;
+        tusb_init();
+        
         // RTOS forever loop
         while (1)
         {
@@ -20,7 +22,6 @@ namespace MatrixOS::USB
     StaticTask_t usb_device_taskdef;
     void Init()
     {
-        tusb_init();
         (void) xTaskCreateStatic( usb_device_task, "usbd", USBD_STACK_SIZE, NULL, configMAX_PRIORITIES-1, usb_device_stack, &usb_device_taskdef);
     }
 

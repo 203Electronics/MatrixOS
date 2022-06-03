@@ -60,17 +60,17 @@ namespace MatrixOS::SYS
         }
     }
 
-    void Init()
+    void Boot(void* param)
     {   
-        Device::DeviceInit();
-        LoadVariables();
-
-        USB::Init();
-        KEYPAD::Init();
-        LED::Init();
-
-        inited = true; 
-
+        LED::Fill(0xFFFFFF);
+        LED::Update();
+        for(uint8_t i = 0; i < 10; i++)
+        {
+            Logging::LogInfo("System", "Hello");
+            DelayMs(1000);
+        }
+        ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
+        
         Logging::LogInfo("System", "Matrix OS initialization complete");
 
         Logging::LogError("Logging", "This is an error log");
@@ -79,13 +79,31 @@ namespace MatrixOS::SYS
         Logging::LogDebug("Logging", "This is a debug log");
         Logging::LogVerbose("Logging", "This is a verbose log");
 
-        ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
-
         Device::PostBootTask();
 
         (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
         
         ExecuteAPP(active_app_id);
+
+        vTaskDelete(NULL);
+    }
+
+    StackType_t  boot_stack[configMINIMAL_STACK_SIZE];
+    StaticTask_t boot_taskdef;
+    void Init()
+    {   
+        Device::DeviceInit();
+        LoadVariables();
+
+        KEYPAD::Init();
+        LED::Init();
+        USB::Init();
+
+        inited = true; 
+
+        (void) xTaskCreateStatic(Boot, "Boot",  configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, boot_stack, &boot_taskdef);
+
+        vTaskStartScheduler();
     }
 
     uint32_t Millis() 
@@ -222,17 +240,17 @@ namespace MatrixOS::SYS
 
     uint32_t GenerateAPPID(string author, string app_name)
     {
-        // uint32_t app_id = Hash(author + "-" + app_name);
-        // Logging::LogInfo("System", "APP ID: %u", app_id);
-        return Hash(author + "-" + app_name);;
+        // Logging::LogInfo("System", "Generating APP ID");
+        // Logging::LogInfo("System", "APP ID: %u", Hash(author + "-" + app_name));
+        return Hash(author + "-" + app_name);
     }
 
     void ExecuteAPP(uint32_t app_id)
     {
-        // Logging::LogInfo("System", "Launching APP ID\t%u", app_id);
+        Logging::LogInfo("System", "Launching APP ID\t%u", app_id);
         active_app_id = app_id;
-        LED::Fill(0);
-        LED::Update();
+        // LED::Fill(0);
+        // LED::Update();
         if(active_app_task != NULL)
         {
             vTaskDelete(active_app_task);
@@ -243,7 +261,7 @@ namespace MatrixOS::SYS
 
     void ExecuteAPP(string author, string app_name)
     {
-        Logging::LogInfo("System", "Launching APP\t%s - %s", author.c_str(), app_name.c_str());
+        // Logging::LogInfo("System", "Launching APP: %s - %s", author.c_str(), app_name.c_str());
         ExecuteAPP(GenerateAPPID(author, app_name));
     }
 
@@ -259,8 +277,6 @@ namespace MatrixOS::SYS
         if(error.empty())
             error = "Undefined Error";
         Logging::LogError("System", "Matrix OS Error: %s", error);
-
-        
         
         //Show Blue Screen
         LED::Fill(0x00adef);

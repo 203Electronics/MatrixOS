@@ -38,7 +38,7 @@ namespace MatrixOS::SYS
         active_app->Start();
     }
     
-    void Supervisor(void* param)
+    void Supervisor()
     {
 
         MatrixOS::Logging::LogDebug("Supervisor", "%d Apps registered", app_count);
@@ -62,16 +62,25 @@ namespace MatrixOS::SYS
 
     void Boot(void* param)
     {   
-        LED::Fill(0xFFFFFF);
-        LED::Update();
-        for(uint8_t i = 0; i < 10; i++)
-        {
-            Logging::LogInfo("System", "Hello");
-            DelayMs(1000);
-        }
-        ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
-        
-        Logging::LogInfo("System", "Matrix OS initialization complete");
+        // LED::Fill(0xFFFFFF);
+        // LED::Update();
+        // for(uint8_t i = 0; i < 10; i++)
+        // {
+        //     Logging::LogInfo("System", "Hello");
+        //     DelayMs(1000);
+        // }
+
+        // while(true)
+        // {
+        //     LED::Fill(0xFFFFFF);
+        //     LED::Update();
+        //     DelayMs(1000);
+        //     LED::Fill(0);
+        //     LED::Update();
+        //     DelayMs(1000);
+        // }
+
+        // Device::Bootloader();
 
         Logging::LogError("Logging", "This is an error log");
         Logging::LogWarning("Logging", "This is a warning log");
@@ -79,17 +88,19 @@ namespace MatrixOS::SYS
         Logging::LogDebug("Logging", "This is a debug log");
         Logging::LogVerbose("Logging", "This is a verbose log");
 
+        Logging::LogInfo("System", "Matrix OS initialization complete");
+
+        ExecuteAPP("203 Electronics", "Matrix Boot"); //Seperate boot animation with Application Class
+
         Device::PostBootTask();
 
-        (void) xTaskCreateStatic(Supervisor, "supervisor",  configMINIMAL_STACK_SIZE * 4, NULL, 1, supervisor_stack, &supervisor_taskdef);
+        Supervisor();
         
-        ExecuteAPP(active_app_id);
+        // ExecuteAPP(active_app_id);
 
         vTaskDelete(NULL);
     }
 
-    StackType_t  boot_stack[configMINIMAL_STACK_SIZE];
-    StaticTask_t boot_taskdef;
     void Init()
     {   
         Device::DeviceInit();
@@ -101,7 +112,7 @@ namespace MatrixOS::SYS
 
         inited = true; 
 
-        (void) xTaskCreateStatic(Boot, "Boot",  configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES-2, boot_stack, &boot_taskdef);
+        (void) xTaskCreateStatic(Boot, "Boot",  configMINIMAL_STACK_SIZE * 4, NULL, configMAX_PRIORITIES-2, system_stack, &system_taskdef);
 
         vTaskStartScheduler();
     }

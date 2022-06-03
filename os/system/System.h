@@ -15,8 +15,8 @@ namespace MatrixOS::SYS
     StackType_t  application_stack[APPLICATION_STACK_SIZE];
     StaticTask_t application_taskdef;
 
-    StackType_t  supervisor_stack[configMINIMAL_STACK_SIZE * 4];
-    StaticTask_t supervisor_taskdef;
+    StackType_t  system_stack[configMINIMAL_STACK_SIZE * 4];
+    StaticTask_t system_taskdef;
 
     inline TaskHandle_t active_app_task = NULL;
     inline uint32_t active_app_id = 0;

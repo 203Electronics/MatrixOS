@@ -125,13 +125,17 @@ namespace Device::KeyPad
 
     }
 
+    uint32_t scan_count = 0; //Temp solution to slow down keypad scanning for touchbar and fn
+
     uint16_t* Scan()
     {
         clearList();
 
-        if(!isListFull()) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
+        if(!isListFull() && (scan_count % 4 == 0)) FNScan(); //Prob not need to check if list is full but it makes the code looks nicer
         if(!isListFull()) KeyPadScan();
-        if(!isListFull() && touchbar_enable) TouchBarScan();
+        if(!isListFull() && touchbar_enable && (scan_count % 8 == 0)) TouchBarScan();
+
+        scan_count++;
 
         return changeList;
     }
@@ -222,12 +226,12 @@ namespace Device::KeyPad
                 uint16_t raw_voltage = result[x][y];
                 read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
                 bool updated = keypadState[x][y].update(read, true);
-                if(read > low_threshold)
-                    {
-                    // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
-                    // uint32_t pad_r = (3300 - voltage) * 220 / ((voltage == 0) ? 1 : voltage);
-                    MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\n", x, y, read, (float)read);
-                }
+                // if(read > low_threshold)
+                //     {
+                //     // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                //     // uint32_t pad_r = (3300 - voltage) * 220 / ((voltage == 0) ? 1 : voltage);
+                //     MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\n", x, y, read, (float)read);
+                // }
                 if(updated)
                 {   
                     uint16_t keyID = (1 << 12) + (x << 6) + y;

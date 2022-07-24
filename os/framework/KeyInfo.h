@@ -82,7 +82,7 @@ struct KeyInfo {
     Aftertouch (Pressed, Actived, Hold, Hold Actived)
     */
 
-   #define DIFFERENCE(a,b) ((a)>(b)?(a)-(b):(b)-(a))
+    #define DIFFERENCE(a,b) ((a)>(b)?(a)-(b):(b)-(a))
 
     inline uint16_t MAX(uint16_t a, uint16_t b) { return((a) > (b) ? a : b); }
 

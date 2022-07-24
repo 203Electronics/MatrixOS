@@ -8,6 +8,7 @@
 #include "esp_system.h"
 // #include "esp_log.h"
 #include "esp_wifi.h"
+#include "esp_mac.h"
 // #include "esp_netif.h"
 #include "esp_now.h"
 
@@ -108,7 +109,7 @@ namespace Device
         uint8_t esp_now_buffer[ESP_NOW_BUFFER_SIZE];
         uint16_t esp_now_buffer_usage = 0;
 
-        void Flush(void* param)
+        void Flush(tmrTimerControl* param)
         {
             (void) param;
             if(esp_now_buffer_usage == 0)

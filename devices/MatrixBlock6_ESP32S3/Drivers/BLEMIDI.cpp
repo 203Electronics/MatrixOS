@@ -18,14 +18,14 @@ namespace Device
 
         static void Task(void *pvParameters)
         {
-            portTickType xLastExecutionTime;
+            TickType_t xLastExecutionTime;
 
             // Initialise the xLastExecutionTime variable on task entry
             xLastExecutionTime = xTaskGetTickCount();
 
             while(true) 
             {
-                vTaskDelayUntil(&xLastExecutionTime, 500 / portTICK_RATE_MS);
+                vTaskDelayUntil(&xLastExecutionTime, 500 / configTICK_RATE_HZ);
                 blemidi_tick(); // for timestamp and output buffer handling
             }
         }

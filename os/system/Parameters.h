@@ -3,10 +3,10 @@
 #include "framework/LogLevel.h"
 
 // #define MATRIXOS_BUILD_RELEASE
-#define MATRIXOS_BUILD_RELEASE_CANDIDATE
+// #define MATRIXOS_BUILD_RELEASE_CANDIDATE
 // #define MATRIXOS_BUILD_BETA
 // #define MATRIXOS_BUILD_NIGHTY
-// #define MATRIXOS_BUILD_INDEV
+#define MATRIXOS_BUILD_INDEV
 
 #define MATRIXOS_MAJOR_VER 2
 #define MATRIXOS_MINOR_VER 0
@@ -24,7 +24,7 @@
 
 //KeyPad
 #ifndef DEBOUNCE_THRESHOLD
-inline uint16_t debounce_threshold = 12;
+inline uint16_t debounce_threshold = 8;
 #else
 inline uint16_t debounce_threshold = DEBOUNCE_THRESHOLD;
 #endif

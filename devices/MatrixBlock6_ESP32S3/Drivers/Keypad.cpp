@@ -1,12 +1,24 @@
 //Define Device Keypad Function
 #include "Device.h"
+#include "ulp_riscv.h"
+#include "ulp_riscv_adc.h"
+
+#include "ulp_keypad.h"
+
+#include "esp_private/adc_private.h"
+#include "esp_adc/adc_oneshot.h"
+#include "hal/adc_hal_common.h"
+#include "esp_private/esp_sleep_internal.h"
 
 #define FSR_KEYPAD_ADC_ATTEN ADC_ATTEN_DB_0
-#define FSR_KEYPAD_ADC_WIDTH ADC_WIDTH_BIT_12
+#define FSR_KEYPAD_ADC_WIDTH ADC_BITWIDTH_12
+
+extern const uint8_t ulp_keypad_bin_start[] asm("_binary_ulp_keypad_bin_start");
+extern const uint8_t ulp_keypad_bin_end[]   asm("_binary_ulp_keypad_bin_end");
 
 namespace Device::KeyPad
 {
-    esp_adc_cal_characteristics_t adc1_chars;
+    // esp_adc_cal_characteristics_t adc1_chars;
 
     void Init()
     {
@@ -35,38 +47,80 @@ namespace Device::KeyPad
 
         //Config Matrix Input
 
-        if(!FSR) //Non FSR keypad
+        if(ulp_driver)
         {
-            io_conf.intr_type = GPIO_INTR_DISABLE;
-            io_conf.mode = GPIO_MODE_INPUT;
-            io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
-            io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-            for(uint8_t y = 0; y < y_size; y++)
-            {
-                io_conf.pin_bit_mask = (1ULL<<keypad_read_pins[y]);
-                gpio_config(&io_conf);
-                gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
-            }
-        }
-        else //FSR keypad
-        {
-            adc1_config_width(FSR_KEYPAD_ADC_WIDTH);
-            esp_adc_cal_characterize(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN,  FSR_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
-            for(uint8_t y = 0; y < y_size; y++)
-            {
-                adc1_config_channel_atten(keypad_read_adc_channel[y], FSR_KEYPAD_ADC_ATTEN);
-            }
-        }
+            { //Modified From ulp_riscv_adc.c
+                //-------------ADC1 Init---------------//
+                adc_oneshot_unit_handle_t adc1_handle;
+                adc_oneshot_unit_init_cfg_t init_config1 = {
+                    .unit_id = ADC_UNIT_1,
+                    .ulp_mode = ADC_ULP_MODE_RISCV,
+                };
+                ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
 
-        io_conf.intr_type = GPIO_INTR_DISABLE;
-        io_conf.mode = GPIO_MODE_OUTPUT;
-        io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
-        io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
-        for(uint8_t x = 0; x < x_size; x++)
+                for(uint8_t y = 0; y < y_size; y++)
+                {
+                    ESP_LOGI("ULP ADC INIT", "%d", y);
+
+                    //-------------ADC1 Config---------------//
+                    adc_oneshot_chan_cfg_t config = {
+                        .atten = FSR_KEYPAD_ADC_ATTEN,
+                        .bitwidth = FSR_KEYPAD_ADC_WIDTH,
+                    };
+                    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, keypad_read_adc_channel[y], &config));
+                }
+
+                //Calibrate the ADC
+                adc_set_hw_calibration_code(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN);
+                esp_sleep_enable_adc_tsens_monitor(true);
+            }
+
+            // #pragma GCC diagnostic push
+            // #pragma GCC diagnostic ignored "-Wstringop-overflow"
+
+            // memcpy((void*)&ulp_keypad_write_pins, (void*)keypad_write_pins, sizeof(keypad_write_pins));
+            // memcpy((void*)&ulp_keypad_read_adc_channel, (void*)keypad_read_adc_channel, sizeof(keypad_read_adc_channel));
+            
+            // #pragma GCC diagnostic pop
+
+            ulp_riscv_load_binary(ulp_keypad_bin_start, (ulp_keypad_bin_end - ulp_keypad_bin_start));
+            ulp_riscv_run();
+        }
+        else
         {
-            io_conf.pin_bit_mask = (1ULL<<keypad_write_pins[x]);
-            gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
-            gpio_set_level(keypad_write_pins[x], 0);
+            // if(!FSR) //Non FSR keypad
+            // {
+            //     io_conf.intr_type = GPIO_INTR_DISABLE;
+            //     io_conf.mode = GPIO_MODE_INPUT;
+            //     io_conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+            //     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+            //     for(uint8_t y = 0; y < y_size; y++)
+            //     {
+            //         io_conf.pin_bit_mask = (1ULL<<keypad_read_pins[y]);
+            //         gpio_config(&io_conf);
+            //         gpio_set_pull_mode(keypad_read_pins[y], GPIO_PULLDOWN_ONLY);
+            //     }
+            // }
+            // else //FSR keypad
+            // {
+            //     adc1_config_width(FSR_KEYPAD_ADC_WIDTH);
+            //     esp_adc_cal_characterize(ADC_UNIT_1, FSR_KEYPAD_ADC_ATTEN,  FSR_KEYPAD_ADC_WIDTH, 0, &adc1_chars);
+            //     for(uint8_t y = 0; y < y_size; y++)
+            //     {
+            //         adc1_config_channel_atten(keypad_read_adc_channel[y], FSR_KEYPAD_ADC_ATTEN);
+            //     }
+            // }
+
+            // io_conf.intr_type = GPIO_INTR_DISABLE;
+            // io_conf.mode = GPIO_MODE_OUTPUT;
+            // io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+            // io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+            // for(uint8_t x = 0; x < x_size; x++)
+            // {
+            //     io_conf.pin_bit_mask = (1ULL<<keypad_write_pins[x]);
+            //     gpio_set_direction(keypad_write_pins[x], GPIO_MODE_OUTPUT);
+            //     gpio_set_level(keypad_write_pins[x], 0);
+            // }
         }
 
     }
@@ -155,26 +209,25 @@ namespace Device::KeyPad
     }
 
     bool key1_read = false;
-    void KeyPadScan()
+
+    void KeyPadScanULP()
     {
-        // int64_t time =  esp_timer_get_time();
-        Fract16 read = 0;
+        // MatrixOS::Logging::LogDebug("Keypad ULP", "Scaned: %d", ulp_count);
+        uint16_t (*result)[8] = (uint16_t(*)[8])&ulp_result;
         for(uint8_t y = 0; y < Device::y_size; y ++)
         {
             for(uint8_t x = 0; x < Device::x_size; x ++)
             {
-                gpio_set_level(keypad_write_pins[x], 1);
-                if(!FSR) //Non FSR
-                {
-                    read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
-                }
-                else //FSR
-                {
-                    uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
-                    read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
-                }
-                gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
+                Fract16 read = 0;
+                uint16_t raw_voltage = result[x][y];
+                read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
                 bool updated = keypadState[x][y].update(read, true);
+                if(read > low_threshold)
+                    {
+                    // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
+                    // uint32_t pad_r = (3300 - voltage) * 220 / ((voltage == 0) ? 1 : voltage);
+                    MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\n", x, y, read, (float)read);
+                }
                 if(updated)
                 {   
                     uint16_t keyID = (1 << 12) + (x << 6) + y;
@@ -183,11 +236,59 @@ namespace Device::KeyPad
                         return; //List is full
                     }
                 }
+                // printf("%2x ", raw_voltage >> 4);
             }
-            // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
+            // printf("\n");
         }
-        // int64_t time_taken =  esp_timer_get_time() - time;
-        // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
+
+        // printf("\n");
+    }
+
+    void KeyPadScanCPU()
+    {
+        // // int64_t time =  esp_timer_get_time();
+        // Fract16 read = 0;
+        // for(uint8_t y = 0; y < Device::y_size; y ++)
+        // {
+        //     for(uint8_t x = 0; x < Device::x_size; x ++)
+        //     {
+        //         gpio_set_level(keypad_write_pins[x], 1);
+        //         if(!FSR) //Non FSR
+        //         {
+        //             read = gpio_get_level(keypad_read_pins[y]) * UINT16_MAX;
+        //         }
+        //         else //FSR
+        //         {
+        //             uint32_t raw_voltage = adc1_get_raw(keypad_read_adc_channel[y]);
+        //             read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
+        //         }
+        //         gpio_set_level(keypad_write_pins[x], 0); //Set pin back to low
+        //         bool updated = keypadState[x][y].update(read, true);
+        //         if(updated)
+        //         {   
+        //             uint16_t keyID = (1 << 12) + (x << 6) + y;
+        //             if(addToList(keyID))
+        //             {
+        //                 return; //List is full
+        //             }
+        //         }
+        //     }
+        //     // volatile int i; for(i=0; i<5; ++i) {} //Add small delay
+        // }
+        // // int64_t time_taken =  esp_timer_get_time() - time;
+        // // ESP_LOGI("Keypad", "%d μs passed, %.2f", (int32_t)time_taken, 1000000.0 / time_taken);
+    }
+
+    void KeyPadScan()
+    {
+        if(ulp_driver)
+        {
+            KeyPadScanULP();
+        }
+        else
+        {
+            KeyPadScanCPU();
+        }
     }
 
     bool addToList(uint16_t keyID)

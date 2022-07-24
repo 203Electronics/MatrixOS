@@ -2,17 +2,18 @@
 #pragma once
 // #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 
+#include "timers.h"
+
 #include "hal/gpio_ll.h"
 #include "hal/usb_hal.h"
 #include "soc/usb_periph.h"
 
 #include "driver/periph_ctrl.h"
 #include "driver/rmt.h"
-#include "driver/adc.h"
-#include "driver/adc_common.h"
+#include "esp_adc/adc_oneshot.h"
 
 #include "esp_timer.h"
-#include "esp_adc_cal.h"
+// #include "esp_adc_cal.h"
 #include "esp_task_wdt.h"
 #include "esp_rom_gpio.h"
 #include "esp_log.h"
@@ -99,7 +100,7 @@ namespace Device
     {
         extern bool started;
         void Init();
-        void Flush(void* param);
+        void Flush(tmrTimerControl* param);
         bool SendMidi(uint8_t* packet);
         uint32_t MidiAvailable();
         MidiPacket GetMidi();

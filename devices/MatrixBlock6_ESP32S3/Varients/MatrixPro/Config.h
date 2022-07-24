@@ -37,7 +37,7 @@ namespace Device
     const uint16_t usb_pid = 0x1040; //(Device Class)0001 (Device Code)000001 (Reserved for Device ID (0~63))000000
 
     const uint16_t numsOfLED = 64 + 32;
-    inline uint16_t keypad_scanrate = 120;
+    inline uint16_t keypad_scanrate = 500;
     const uint8_t x_size = 8;
     const uint8_t y_size = 8;
     const uint8_t touchbar_size = 16; //Not required by the API, private use.
@@ -45,16 +45,17 @@ namespace Device
     namespace KeyPad
     {
         inline bool FSR;
+        inline bool ulp_driver = true;
 
         inline gpio_num_t fn_pin;
         inline bool fn_active_low = true;
 
-        inline Fract16 low_threshold = 1536;
+        inline Fract16 low_threshold = 2048;
         inline Fract16 high_threshold = 65535;
 
         inline gpio_num_t keypad_write_pins[8];
         inline gpio_num_t keypad_read_pins[8];
-        inline adc1_channel_t keypad_read_adc_channel[8];
+        inline adc_channel_t keypad_read_adc_channel[8];
 
         inline gpio_num_t touchData_Pin;
         inline gpio_num_t touchClock_Pin;

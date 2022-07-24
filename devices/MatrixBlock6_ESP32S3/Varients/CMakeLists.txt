@@ -35,7 +35,7 @@ set(MATRIX_OS_APPLICATION_SRC "${MATRIX_OS_APPLICATION_C};${MATRIX_OS_APPLICATIO
 idf_component_register(SRCS "${FAMILY_PATH}/Family.cpp" "${CMAKE_SOURCE_DIR}/main.cpp" ${MATRIX_OS_SRC} ${DEVICE_SRC} ${MATRIX_OS_APPLICATION_SRC}
                     INCLUDE_DIRS "." "${DEVICE_PATH}" "${FAMILY_PATH}"
                     PRIV_REQUIRES "driver"
-                    REQUIRES freertos nvs_flash esp_adc_cal)
+                    REQUIRES freertos nvs_flash ulp efuse esp_timer esp_wifi esp_adc)
 
 
 # Apply board specific content
@@ -96,8 +96,31 @@ target_sources(${COMPONENT_TARGET} PUBLIC
 "${CMAKE_SOURCE_DIR}/lib/printf/src/printf/printf.c"
 )
 
+add_compile_options (-fdiagnostics-color=always)
+
 # set_source_files_properties(
 #   "${FAMILY_PATH}/Family.cpp" "${CMAKE_SOURCE_DIR}/main.cpp" ${MATRIX_OS_SRC_CPP} ${DEVICE_SRC_CPP}
 #     PROPERTIES COMPILE_FLAGS
 #     -std=c++11
 # )
+
+#
+# ULP support additions to component CMakeLists.txt.
+#
+# 1. The ULP app name must be unique (if multiple components use ULP).
+set(ulp_app_name ulp_keypad)
+#
+# 2. Specify all C and Assembly source files.
+#    Files should be placed into a separate directory (in this case, ulp/),
+#    which should not be added to COMPONENT_SRCS.
+set(ulp_riscv_sources "${FAMILY_PATH}/ULP/keypad.c")
+
+#
+# 3. List all the component source files which include automatically
+#    generated ULP export file, ${ulp_app_name}.h:
+set(ulp_exp_dep_srcs "${FAMILY_PATH}/Drivers/Keypad.cpp")
+
+#
+# 4. Call function to build ULP binary and embed in project using the argument
+#    values above.
+ulp_embed_binary(${ulp_app_name} "${ulp_riscv_sources}" "${ulp_exp_dep_srcs}")

@@ -83,14 +83,14 @@ namespace Device
 #define KeyRead8_Pin GPIO_NUM_8
 
 // #define FSR_KEYPAD
-#define KeyRead1_ADC_CHANNEL ADC1_CHANNEL_0
-#define KeyRead2_ADC_CHANNEL ADC1_CHANNEL_1
-#define KeyRead3_ADC_CHANNEL ADC1_CHANNEL_2
-#define KeyRead4_ADC_CHANNEL ADC1_CHANNEL_3
-#define KeyRead5_ADC_CHANNEL ADC1_CHANNEL_4
-#define KeyRead6_ADC_CHANNEL ADC1_CHANNEL_5
-#define KeyRead7_ADC_CHANNEL ADC1_CHANNEL_6
-#define KeyRead8_ADC_CHANNEL ADC1_CHANNEL_7
+#define KeyRead1_ADC_CHANNEL ADC_CHANNEL_0
+#define KeyRead2_ADC_CHANNEL ADC_CHANNEL_1
+#define KeyRead3_ADC_CHANNEL ADC_CHANNEL_2
+#define KeyRead4_ADC_CHANNEL ADC_CHANNEL_3
+#define KeyRead5_ADC_CHANNEL ADC_CHANNEL_4
+#define KeyRead6_ADC_CHANNEL ADC_CHANNEL_5
+#define KeyRead7_ADC_CHANNEL ADC_CHANNEL_6
+#define KeyRead8_ADC_CHANNEL ADC_CHANNEL_7
 
 #define TouchData_Pin GPIO_NUM_12
 #define TouchClock_Pin GPIO_NUM_13
@@ -127,7 +127,7 @@ inline gpio_num_t keypad_read_pins[] = {
     KeyRead8_Pin,
 };
 
-inline adc1_channel_t keypad_read_adc_channel[] = {
+inline adc_channel_t keypad_read_adc_channel[] = {
     KeyRead1_ADC_CHANNEL,
     KeyRead2_ADC_CHANNEL,
     KeyRead3_ADC_CHANNEL,

@@ -1,4 +1,5 @@
 #include "Device.h"
+#include "rom/gpio.h"
 
 namespace Device
 {

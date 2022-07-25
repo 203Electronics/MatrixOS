@@ -216,11 +216,11 @@ namespace Device::KeyPad
 
     void KeyPadScanULP()
     {
-        // MatrixOS::Logging::LogDebug("Keypad ULP", "Scaned: %d", ulp_count);
+        // MatrixOS::Logging::LogInfo("Keypad ULP", "Scaned: %d", ulp_count);
         uint16_t (*result)[8] = (uint16_t(*)[8])&ulp_result;
         for(uint8_t y = 0; y < Device::y_size; y ++)
         {
-            for(uint8_t x = 0; x < Device::x_size; x ++)
+            for(uint8_t x = 0; x < Device::x_size; x++)
             {
                 Fract16 read = 0;
                 uint16_t raw_voltage = result[x][y];

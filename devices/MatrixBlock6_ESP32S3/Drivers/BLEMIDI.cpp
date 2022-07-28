@@ -25,7 +25,7 @@ namespace Device
 
             while(true) 
             {
-                vTaskDelayUntil(&xLastExecutionTime, 500 / configTICK_RATE_HZ);
+                vTaskDelayUntil(&xLastExecutionTime, 500 / portTICK_PERIOD_MS);
                 blemidi_tick(); // for timestamp and output buffer handling
             }
         }
@@ -90,6 +90,10 @@ namespace Device
         void Init(string name)
         {
             BLEMIDI::name = name;
+            if(bluetooth)
+            {
+                BLEMIDI::Start();
+            }
         }
 
         void Start()

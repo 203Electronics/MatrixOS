@@ -5,7 +5,7 @@
 
 #define X_SIZE 8
 #define Y_SIZE 8
-// #define SAMPLES 1
+#define SAMPLES 3
 
 volatile gpio_num_t keypad_write_pins[Y_SIZE] = 
 {
@@ -31,8 +31,10 @@ volatile adc_channel_t keypad_read_adc_channel[X_SIZE] =
     ADC_CHANNEL_9
 };
 
-volatile uint16_t result[X_SIZE][Y_SIZE];
+volatile uint16_t result[X_SIZE][Y_SIZE][SAMPLES];
+
 volatile uint32_t count;
+volatile uint32_t latest;
 
 int main(void)
 {
@@ -46,16 +48,17 @@ int main(void)
   }
   while(true)
   {
-    // uint8_t sample_index = count % SAMPLES;
+    uint8_t sample_index = count % SAMPLES;
     for (uint8_t x = 0; x < X_SIZE; x++)
     {
       for (uint8_t y = 0; y < Y_SIZE; y++)
       {
         ulp_riscv_gpio_output_level(keypad_write_pins[x], 1);
-        result[x][y] = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
+        result[x][y][sample_index] = ulp_riscv_adc_read_channel(ADC_UNIT_1, keypad_read_adc_channel[y]);
         ulp_riscv_gpio_output_level(keypad_write_pins[x], 0);
       }
     }
+    latest = sample_index;
     count++;
   }
 }

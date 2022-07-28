@@ -22,10 +22,6 @@ namespace Device
         NVS::Init();
 
         BLEMIDI::Init(name);
-        if(bluetooth)
-        {
-            BLEMIDI::Start();
-        }
 
         // WIFI::Init();
         // ESPNOW::Init();

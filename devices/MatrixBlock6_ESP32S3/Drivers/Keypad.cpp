@@ -214,20 +214,55 @@ namespace Device::KeyPad
 
     bool key1_read = false;
 
+
+uint16_t middleOfThree(uint16_t a, uint16_t b, uint16_t c)
+{
+    // Checking for b
+    if ((a <= b && b <= c) || (c <= b && b <= a))
+    return b;
+
+    // Checking for a
+    else if ((b <= a && a <= c) || (c <= a && a <= b))
+    return a;
+
+    else
+    return c;
+}
+
+        uint16_t minOfThree(uint16_t a, uint16_t b, uint16_t c)
+    {
+        // Checking for a
+        if (a < b && a < c)
+        return a;
+    
+        // Checking for b
+        else if (b < a && b < c)
+        return a;
+    
+        else
+        return c;
+    }
+
     void KeyPadScanULP()
     {
         // MatrixOS::Logging::LogInfo("Keypad ULP", "Scaned: %d", ulp_count);
-        uint16_t (*result)[8] = (uint16_t(*)[8])&ulp_result;
+        uint16_t (*result)[8][3] = (uint16_t(*)[8][3])&ulp_result;
         for(uint8_t y = 0; y < Device::y_size; y ++)
         {
             for(uint8_t x = 0; x < Device::x_size; x++)
-            {
-                Fract16 read = 0;
-                uint16_t raw_voltage = result[x][y];
-                read =  (raw_voltage << 4) + (raw_voltage >> 8); //Raw Voltage mapped. Will add calibration curve later.
+            {  
+
+                // uint16_t raw_voltage = result[x][y];
+                uint16_t reading = middleOfThree(result[x][y][0], result[x][y][1], result[x][y][2]);
+                    
+                // if(raw_voltage > 96 || result[x][y] > 96)
+                // {
+                //     MatrixOS::Logging::LogInfo("FSR", "%d(%d-%d-%d) | %d\n", raw_voltage, result1[x][y], result2[x][y], result3[x][y] , result[x][y]);
+                // }
+                Fract16 read =  (reading << 4) + (reading >> 8); //Raw Voltage mapped. Will add calibration curve later.
                 bool updated = keypadState[x][y].update(read, true);
-                // if(read > low_threshold)
-                //     {
+                // if(updated)
+                // {
                 //     // uint32_t voltage = esp_adc_cal_raw_to_voltage(raw_voltage, &adc1_chars);
                 //     // uint32_t pad_r = (3300 - voltage) * 220 / ((voltage == 0) ? 1 : voltage);
                 //     MatrixOS::Logging::LogDebug("FSR", "%d-%d %d-%f\n", x, y, read, (float)read);

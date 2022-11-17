@@ -35,7 +35,7 @@ set(MATRIX_OS_APPLICATION_SRC "${MATRIX_OS_APPLICATION_C};${MATRIX_OS_APPLICATIO
 idf_component_register(SRCS "${FAMILY_PATH}/Family.cpp" "${CMAKE_SOURCE_DIR}/main.cpp" ${MATRIX_OS_SRC} ${DEVICE_SRC} ${MATRIX_OS_APPLICATION_SRC}
                     INCLUDE_DIRS "." "${DEVICE_PATH}" "${FAMILY_PATH}"
                     PRIV_REQUIRES "driver"
-                    REQUIRES freertos nvs_flash esp_adc_cal)
+                    REQUIRES freertos nvs_flash esp_adc_cal fatfs)
 
 
 # Apply board specific content

@@ -17,6 +17,7 @@ namespace Device
     NVS::Init();
     LED::Init();
     KeyPad::Init();
+    MassStorage::Init();
 
     BLEMIDI::Init(name);
 

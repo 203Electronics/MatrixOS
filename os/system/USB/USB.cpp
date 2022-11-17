@@ -1,3 +1,4 @@
+#include "tusb.h"
 #include "MatrixOS.h"
 #include "MIDI.h"
 
@@ -30,10 +31,5 @@ namespace MatrixOS::USB
 
   bool Connected() {
     return tud_ready();
-  }
-
-  uint16_t GetBCDID() {
-    return ((USB_CDC_COUNT & 0b11) << 14) + ((USB_MIDI_COUNT & 0b11) << 12) + ((USB_HID_COUNT & 0b11) << 10) +
-           ((USB_MSC_COUNT & 0b11) << 8) + ((USB_VENDOR_COUNT & 0b11) << 6) + (MatrixOS::UserVar::device_id & 0b111111);
   }
 }

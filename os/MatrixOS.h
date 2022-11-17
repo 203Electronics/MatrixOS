@@ -10,7 +10,6 @@
 #include "system/UserVariables.h"
 #include "task.h"
 #include "timers.h"
-#include "tusb.h"
 
 #define noexpose  // Custum keyword to remove function to be generated as exposed API
 

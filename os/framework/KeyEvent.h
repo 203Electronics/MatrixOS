@@ -28,9 +28,10 @@ namespace MatrixOS::Logging
 
 struct KeyConfig {
   bool velocity_sensitive;
-  Fract16 low_threshold;
-  Fract16 high_threshold;
-  uint16_t debounce;
+  Fract16 low_threshold = 0;
+  Fract16 high_threshold = FRACT16_MAX;
+  Fract16 activate_threshold = 0;
+  uint16_t debounce = 0;
 };
 
 enum KeyState : uint8_t { /*Status Keys*/ IDLE,
@@ -44,6 +45,14 @@ enum KeyState : uint8_t { /*Status Keys*/ IDLE,
                            /*Placeholder Keys*/ INVAILD = 255u };
 // When adding new state, remember to update active() as well
 
+inline KeyConfig defaultKeyConfig = {
+    .velocity_sensitive = false,
+    .low_threshold = 0,
+    .high_threshold = 65535,
+    .activate_threshold = 0,
+    .debounce = 0,
+};
+
 struct KeyInfo {
   KeyConfig* config = nullptr;
   KeyState state = IDLE;
@@ -51,9 +60,7 @@ struct KeyInfo {
   Fract16 velocity = 0;
   bool hold = false;
 
-  KeyInfo() {}
-
-  KeyInfo(KeyConfig* config) { this->config = config; }
+  KeyInfo(KeyConfig* config = &defaultKeyConfig) { this->config = config; }
 
   void setConfig(KeyConfig* config) { this->config = config; }
 
@@ -108,7 +115,12 @@ struct KeyInfo {
     { return false; }
 
     if (applyCurve && config->velocity_sensitive)
-    { velocity = applyVelocityCurve(velocity); }
+    { 
+      if (this->velocity == 0 && velocity < config->activate_threshold)
+      { velocity = 0; }
+      else
+      { velocity = applyVelocityCurve(velocity); }
+    }
 
     // Reset back to normal keys
     if (state == PRESSED)

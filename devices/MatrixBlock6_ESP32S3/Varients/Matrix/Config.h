@@ -63,25 +63,12 @@ namespace Device
     inline bool fn_active_low = true;
     inline bool velocity_sensitivity = false;
 
-    inline KeyConfig fn_config = {
-        .velocity_sensitive = false,
-        .low_threshold = 0,
-        .high_threshold = 65535,
-        .debounce = 0,
-    };
-
     inline KeyConfig keypad_config = {
         .velocity_sensitive = true,
-        .low_threshold = 512,
+        .low_threshold = 32,
         .high_threshold = 65535,
-        .debounce = 5,
-    };
-
-    inline KeyConfig touch_config = {
-        .velocity_sensitive = false,
-        .low_threshold = 0,
-        .high_threshold = 65535,
-        .debounce = 0,
+        .activate_threshold = 128,
+        .debounce = 2,
     };
 
     inline gpio_num_t keypad_write_pins[8];

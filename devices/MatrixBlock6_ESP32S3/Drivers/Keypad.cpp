@@ -8,7 +8,7 @@ namespace Device::KeyPad
   TimerHandle_t keypad_timer;
 
   void Init() {
-    LoadCustomSettings();
+    // LoadCustomSettings();
     InitFN();
     InitKeyPad();
     InitTouchBar();
@@ -32,9 +32,6 @@ namespace Device::KeyPad
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
 #endif
     gpio_config(&io_conf);
-
-    // Set up Matrix OS key config
-    fnState.setConfig(&fn_config);
   }
 
   void InitKeyPad() {
